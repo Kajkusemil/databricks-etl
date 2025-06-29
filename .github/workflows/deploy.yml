@@ -1,0 +1,37 @@
+name: Deploy & Run on Databricks
+
+on:
+  push:
+    branches: [ main ]    # svaka promena na main pokreće workflow
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    # 1. IMPORT notebook u workspace
+    - name: Import notebook to Databricks
+      run: |
+        # --workspace import REST API traži base64 sadržaj --
+        b64_content=$(base64 -w0 etl_srbija.py)
+        curl -f -X POST "$DATABRICKS_HOST/api/2.0/workspace/import" \
+          -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"path\": \"/Users/emil.kajkus/etl/etl_srbija.py\", \"format\": \"SOURCE\", \"language\": \"PYTHON\", \"content\": \"$b64_content\", \"overwrite\": true}"
+      env:
+        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    # 2. POKRENI notebook (run-submit = jednokratni job)
+    - name: Run notebook (run-submit)
+      run: |
+        curl -f -X POST "$DATABRICKS_HOST/api/2.1/jobs/run-submit" \
+          -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d @job-payload.json
+      env:
+        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
