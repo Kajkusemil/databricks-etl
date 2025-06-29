@@ -8,39 +8,45 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+    - name: 📥 Checkout code
+      uses: actions/checkout@v3
 
-      - name: 🔍 Check secrets
-        run: |
-          [ -z "$DATABRICKS_HOST" ] && { echo "❌ HOST empty"; exit 1; }
-          [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ TOKEN empty"; exit 1; }
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    - name: 🔍 Proveri da li su secrets postavljeni
+      run: |
+        [ -z "$DATABRICKS_HOST" ] && { echo "❌ DATABRICKS_HOST nije postavljen"; exit 1; }
+        [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ DATABRICKS_TOKEN nije postavljen"; exit 1; }
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-      - name: Install CLI
-        run: pip install databricks-cli
+    - name: 🧪 Prikaži početak tokena (DEBUG)
+      run: |
+        echo "HOST=${DATABRICKS_HOST:0:10}..."
+        echo "TOKEN=${DATABRICKS_TOKEN:0:5}..."
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-      - name: Configure CLI
-        run: |
-          mkdir -p ~/.databricks
-          {
-            echo "[DEFAULT]"
-            echo "host = $DATABRICKS_HOST"
-            echo "token = $(echo "$DATABRICKS_TOKEN" | tr -d '\r\n')"
-          } > ~/.databricks/config
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    - name: 📦 Instaliraj Databricks CLI
+      run: pip install databricks-cli
 
-      - name: Upload notebook
-        run: |
-          databricks workspace import etl_srbija.py \
+    - name: ⚙️ Konfiguriši CLI sa tokenom
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      run: |
+        cat <<EOF | databricks configure --token
+$DATABRICKS_HOST
+$DATABRICKS_TOKEN
+EOF
+
+    - name: 🚀 Deploy notebook u /Shared
+      run: |
+        databricks workspace import etl_srbija.py \
           /Shared/etl_srbija \
           --language PYTHON --format SOURCE --overwrite
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
 
 
