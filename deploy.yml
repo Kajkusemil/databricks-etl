@@ -17,9 +17,11 @@ jobs:
       - name: Configure CLI
         run: |
           mkdir -p ~/.databricks
-          echo "[DEFAULT]" > ~/.databricks/config
-          echo "host = $DATABRICKS_HOST" >> ~/.databricks/config
-          echo "token = $DATABRICKS_TOKEN" >> ~/.databricks/config
+          cat <<EOF > ~/.databricks/config
+          [DEFAULT]
+          host = $DATABRICKS_HOST
+          token = $DATABRICKS_TOKEN
+          EOF
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -27,3 +29,14 @@ jobs:
       - name: Upload notebook
         run: |
           databricks workspace import etl_srbija.py /Users/emil.kajkus/etl/etl_srbija.py --language PYTHON --overwrite
+        env:
+          DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      # DEBUG – proveri da li host tajna stiže
+      - name: DEBUG – provjeri host
+        run: |
+          echo "::add-mask::$DATABRICKS_HOST"
+          echo "HOST=[$DATABRICKS_HOST]"
+        env:
+          DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
