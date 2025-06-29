@@ -15,6 +15,9 @@ jobs:
       run: |
         [ -z "$DATABRICKS_HOST" ] && { echo "❌ HOST empty"; exit 1; }
         [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ TOKEN empty"; exit 1; }
+        env:
+         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     - name: Install CLI
       run: pip install databricks-cli
 
