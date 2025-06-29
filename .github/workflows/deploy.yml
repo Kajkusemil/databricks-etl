@@ -1,46 +1,55 @@
-name: Deploy & Run on Databricks
+name: Deploy to Databricks
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:            # omogućava “Run workflow” dugme
 
 jobs:
-  run-etl:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
+      # 1. Preuzmi kod iz repoa
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Import notebook to Databricks
-      run: |
-        b64_content=$(base64 -w0 etl_srbija.py)
-        cat >payload.json <<EOF
-        {
-          "path": "/Users/emil.kajkus/etl/etl_srbija.py",
-          "language": "PYTHON",
-          "format": "SOURCE",
-          "content": "$b64_content",
-          "overwrite": true
-        }
-        EOF
+      # 2. Instaliraj Databricks CLI
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
 
-        curl -f -X POST "$DATABRICKS_HOST/api/2.0/workspace/import" \
-          -H "Authorization: Bearer $DATABRICKS_TOKEN" \
-          -H "Content-Type: application/json" \
-          --data @payload.json
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      # 3. Konfiguriši CLI (host + token iz GitHub secrets)
+      - name: Configure CLI
+        run: |
+          mkdir -p ~/.databricks
+          cat <<EOF > ~/.databricks/config
+          [DEFAULT]
+          host = $DATABRICKS_HOST
+          token = $DATABRICKS_TOKEN
+          EOF
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-    - name: Run notebook
-      run: |
-        curl -f -X POST "$DATABRICKS_HOST/api/2.1/jobs/run-submit" \
-          -H "Authorization: Bearer $DATABRICKS_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d @job-payload.json
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      # 4. DEBUG – prikaži šta je stiglo
+      - name: DEBUG – show env & config
+        run: |
+          echo "ENV_HOST=[$DATABRICKS_HOST]"
+          echo '----- ~/.databricks/config -----'
+          cat ~/.databricks/config | sed 's/token = .*/token = ***MASKED***/'
+          echo '--------------------------------'
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+
+      # 5. Upload notebook u Workspace (OVDE je dodat --format SOURCE)
+      - name: Upload notebook
+        run: |
+          databricks workspace import etl_srbija.py \
+            /Users/kajkusemil2103@gmail.com/etl/etl_srbija.py \
+            --language PYTHON \
+            --format SOURCE \        # ← OBLIGATNO da API ne traži base64
+            --overwrite
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
