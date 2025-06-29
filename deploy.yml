@@ -40,3 +40,4 @@ jobs:
           echo "HOST=[$DATABRICKS_HOST]"
         env:
           DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+# Trigger deploy again
