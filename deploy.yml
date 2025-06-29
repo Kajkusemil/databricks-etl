@@ -42,7 +42,7 @@ jobs:
       - name: Upload notebook
         run: |
           databricks workspace import etl_srbija.py \
-            /Users/emil.kajkus/etl/etl_srbija.py \
+            /Users/kajkusemil2103@gmail.com/etl/etl_srbija.py \
             --language PYTHON --overwrite
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
