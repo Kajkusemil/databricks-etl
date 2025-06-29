@@ -10,43 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: 🔍 Proveri da li su secrets postavljeni
-      run: |
-        [ -z "$DATABRICKS_HOST" ] && { echo "❌ DATABRICKS_HOST nije postavljen"; exit 1; }
-        [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ DATABRICKS_TOKEN nije postavljen"; exit 1; }
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      - name: 🧪 Proveri da li su secrets postavljeni
+        run: |
+          [ -z "${{ secrets.DATABRICKS_HOST }}" ] && ( echo ❌ DATABRICKS_HOST nije postavljen; exit 1 )
+          [ -z "${{ secrets.DATABRICKS_TOKEN }}" ] && ( echo ❌ DATABRICKS_TOKEN nije postavljen; exit 1 )
 
-    - name: 🧪 Prikaži početak tokena (DEBUG)
-      run: |
-        echo "HOST=${DATABRICKS_HOST:0:10}..."
-        echo "TOKEN=${DATABRICKS_TOKEN:0:5}..."
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      - name: 🐛 Prikaži početak tokena (DEBUG)
+        run: |
+          echo "HOST=${{ secrets.DATABRICKS_HOST }}"
+          echo "TOKEN=${{ secrets.DATABRICKS_TOKEN:0:5 }}..."
 
-    - name: 📦 Instaliraj Databricks CLI
-      run: pip install databricks-cli
+      - name: 📦 Instaliraj Databricks CLI
+        run: pip install databricks-cli
 
-    - name: ⚙️ Konfiguriši CLI sa tokenom
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      run: |
-        cat <<EOF | databricks configure --token
-$DATABRICKS_HOST
-$DATABRICKS_TOKEN
+      - name: ⚙️ Konfiguriši CLI sa tokenom
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          cat <<EOF | databricks configure --token
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
 EOF
 
-    - name: 🚀 Deploy notebook u /Shared
-      run: |
-        databricks workspace import etl_srbija.py \
-          /Shared/etl_srbija \
-          --language PYTHON --format SOURCE --overwrite
-
-
-
+      - name: 🚀 Deploy notebook u /Shared
+        run: |
+          databricks workspace import etl_srbija.py \
+            /Shared/etl_srbija \
+            --language PYTHON --format SOURCE --overwrite
