@@ -3,41 +3,46 @@ name: Deploy to Databricks
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:            # omogućava “Run workflow” dugme
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install Databricks CLI
-      run: pip install databricks-cli
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
 
-    - name: Configure CLI
-      run: |
-        mkdir -p ~/.databricks
-        echo "[DEFAULT]"            >  ~/.databricks/config
-        echo "host = $DATABRICKS_HOST"   >> ~/.databricks/config
-        echo "token = $DATABRICKS_TOKEN" >> ~/.databricks/config
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      - name: Configure CLI
+        run: |
+          mkdir -p ~/.databricks
+          echo "[DEFAULT]" > ~/.databricks/config
+          echo "host = $DATABRICKS_HOST" >> ~/.databricks/config
+          echo "token = $DATABRICKS_TOKEN" >> ~/.databricks/config
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-    # DEBUG – potvrdi da je token upisan
-    - name: DEBUG – show config
-      run: cat ~/.databricks/config | sed 's/token = .*/token = ***MASKED***/'
+      - name: DEBUG – show env & config
+        run: |
+          echo "ENV_HOST=[$DATABRICKS_HOST]"
+          echo '----- config -----'
+          cat ~/.databricks/config | sed 's/token = .*/token = ***MASKED***/'
+          echo '------------------'
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
 
-    - name: Upload notebook
-      run: |
-        databricks workspace import etl_srbija.py \
-          /Users/kajkusemil2103@gmail.com/etl/etl_srbija.py \
-          --language PYTHON \
-          --format SOURCE \
-          --overwrite
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      - name: Upload notebook
+        run: |
+          databricks workspace import etl_srbija.py \
+            /Shared/etl_srbija \
+            --language PYTHON --format SOURCE --overwrite
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
 
 
