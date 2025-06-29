@@ -10,31 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1) Checkout koda
     - uses: actions/checkout@v3
 
-    # 2) Instaliraj Databricks CLI
     - name: Install Databricks CLI
       run: pip install databricks-cli
 
-    # 3) Konfiguriši CLI (host + token iz GitHub secrets)
     - name: Configure CLI
       run: |
         mkdir -p ~/.databricks
-        cat > ~/.databricks/config <<EOF
-        [DEFAULT]
-        host = $DATABRICKS_HOST
-        token = $DATABRICKS_TOKEN
-        EOF
+        echo "[DEFAULT]"            >  ~/.databricks/config
+        echo "host = $DATABRICKS_HOST"   >> ~/.databricks/config
+        echo "token = $DATABRICKS_TOKEN" >> ~/.databricks/config
       env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-    # 4) Upload notebook (bez lomljenja linije, bez komentara)
+    # DEBUG – potvrdi da je token upisan
+    - name: DEBUG – show config
+      run: cat ~/.databricks/config | sed 's/token = .*/token = ***MASKED***/'
+
     - name: Upload notebook
       run: |
-        databricks workspace import etl_srbija.py /Users/kajkusemil2103@gmail.com/etl/etl_srbija.py --language PYTHON --format SOURCE --overwrite
+        databricks workspace import etl_srbija.py \
+          /Users/kajkusemil2103@gmail.com/etl/etl_srbija.py \
+          --language PYTHON \
+          --format SOURCE \
+          --overwrite
       env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
 
