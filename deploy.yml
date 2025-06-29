@@ -3,13 +3,15 @@ name: Deploy to Databricks
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:              # омогућава “Run workflow” дугме
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install Databricks CLI
         run: pip install databricks-cli
@@ -26,18 +28,22 @@ jobs:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
+      # DEBUG – прикажи шта је стигло као променљива и у config-у
+      - name: DEBUG – show env & config
+        run: |
+          echo "ENV_HOST=[$DATABRICKS_HOST]"
+          echo '----- config -----'
+          cat ~/.databricks/config | sed 's/token = .*/token = ***MASKED***/'
+          echo '------------------'
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+
+      # Уплоад notebook-а
       - name: Upload notebook
         run: |
-          databricks workspace import etl_srbija.py /Users/emil.kajkus/etl/etl_srbija.py --language PYTHON --overwrite
+          databricks workspace import etl_srbija.py \
+            /Users/emil.kajkus/etl/etl_srbija.py \
+            --language PYTHON --overwrite
         env:
-          DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-
-      # DEBUG – proveri da li host tajna stiže
-      - name: DEBUG – provjeri host
-        run: |
-          echo "::add-mask::$DATABRICKS_HOST"
-          echo "HOST=[$DATABRICKS_HOST]"
-        env:
-          DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-# Trigger deploy again
