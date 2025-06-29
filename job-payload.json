@@ -1,0 +1,11 @@
+{
+  "run_name": "CI/CD – etl_srbija",
+  "new_cluster": {
+    "spark_version": "13.3.x-scala2.12",   // default LTS verzija
+    "node_type_id": "Standard_DS3_v2",     // 4 vCPU / 14 GB (promeni ako treba)
+    "num_workers": 1
+  },
+  "notebook_task": {
+    "notebook_path": "/Users/emil.kajkus/etl/etl_srbija.py"
+  }
+}
