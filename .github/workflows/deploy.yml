@@ -9,38 +9,38 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: 🔍 Check secrets
-      run: |
-        [ -z "$DATABRICKS_HOST" ] && { echo "❌ HOST empty"; exit 1; }
-        [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ TOKEN empty"; exit 1; }
+      - name: 🔍 Check secrets
+        run: |
+          [ -z "$DATABRICKS_HOST" ] && { echo "❌ HOST empty"; exit 1; }
+          [ -z "$DATABRICKS_TOKEN" ] && { echo "❌ TOKEN empty"; exit 1; }
         env:
-         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-    - name: Install CLI
-      run: pip install databricks-cli
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
-    - name: Configure CLI
-      run: |
-        mkdir -p ~/.databricks
-        {
-          echo "[DEFAULT]"
-          echo "host = $DATABRICKS_HOST"
-          echo "token = $(echo "$DATABRICKS_TOKEN" | tr -d '\r\n')"
-        } > ~/.databricks/config
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      - name: Install CLI
+        run: pip install databricks-cli
 
-    - name: Upload notebook
-      run: |
-        databricks workspace import etl_srbija.py \
+      - name: Configure CLI
+        run: |
+          mkdir -p ~/.databricks
+          {
+            echo "[DEFAULT]"
+            echo "host = $DATABRICKS_HOST"
+            echo "token = $(echo "$DATABRICKS_TOKEN" | tr -d '\r\n')"
+          } > ~/.databricks/config
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Upload notebook
+        run: |
+          databricks workspace import etl_srbija.py \
           /Shared/etl_srbija \
           --language PYTHON --format SOURCE --overwrite
-      env:
-        DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
 
