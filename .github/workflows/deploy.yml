@@ -12,15 +12,15 @@ jobs:
       - name: 🛎️ Checkout repo
         uses: actions/checkout@v3
 
-      - name: ✅ Proveri da li su secrets postavljeni
-        run: |
-          [ -z "${{ secrets.DATABRICKS_HOST }}" ] && ( echo ❌ DATABRICKS_HOST nije postavljen; exit 1 )
-          [ -z "${{ secrets.DATABRICKS_TOKEN }}" ] && ( echo ❌ DATABRICKS_TOKEN nije postavljen; exit 1 )
+      # - name: ✅ Proveri da li su secrets postavljeni
+      #   run: |
+      #     [ -z "${{ secrets.DATABRICKS_HOST }}" ] && ( echo ❌ DATABRICKS_HOST nije postavljen; exit 1 )
+      #     [ -z "${{ secrets.DATABRICKS_TOKEN }}" ] && ( echo ❌ DATABRICKS_TOKEN nije postavljen; exit 1 )
 
-      - name: 🔍 Prikaži početak tokena (DEBUG)
-        run: |
-          echo "HOST=${{ secrets.DATABRICKS_HOST:0:10 }}..."
-          echo "TOKEN=${{ secrets.DATABRICKS_TOKEN:0:5 }}..."
+      # - name: 🔍 Prikaži početak tokena (DEBUG)
+      #   run: |
+      #     echo "HOST=${{ secrets.DATABRICKS_HOST:0:10 }}..."
+      #     echo "TOKEN=${{ secrets.DATABRICKS_TOKEN:0:5 }}..."
 
       - name: 📦 Instaliraj Databricks CLI
         run: pip install databricks-cli
