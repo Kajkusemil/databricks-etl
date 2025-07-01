@@ -37,6 +37,6 @@ jobs:
 
       - name: 🚀 Deploy notebook u /Shared
         run: |
-          databricks- workspace import etl_srbija.py \
+          databricks workspace import etl_srbija.py \
           /Users/emil-workspace/Shared/etl_srbija \
           --language PYTHON --format SOURCE --overwrite #e
